@@ -32,30 +32,32 @@ Red [
 
 input: "R1, L4, L5, L5, R2, R2, L1, L1, R2, L3, R4, R3, R2, L4, L2, R5, L1, R5, L5, L2, L3, L1, R1, R4, R5, L3, R2, L4, L5, R1, R2, L3, R3, L3, L1, L2, R5, R4, R5, L5, R1, L190, L3, L3, R3, R4, R47, L3, R5, R79, R5, R3, R1, L4, L3, L2, R194, L2, R1, L2, L2, R4, L5, L5, R1, R1, L1, L3, L2, R5, L3, L3, R4, R1, R5, L4, R3, R1, L1, L2, R4, R1, L2, R4, R4, L5, R3, L5, L3, R1, R1, L3, L1, L1, L3, L4, L1, L2, R1, L5, L3, R2, L5, L3, R5, R3, L4, L2, R2, R4, R4, L4, R5, L1, L3, R3, R4, R4, L5, R4, R2, L3, R4, R2, R1, R2, L4, L2, R2, L5, L5, L3, R5, L5, L1, R4, L1, R1, L1, R4, L5, L3, R4, R1, L3, R4, R1, L3, L1, R1, R2, L4, L2, R1, L5, L4, L5"
 
-vect: function [a b][object [x: a y: b]]
-
-rotate: function [pair [pair! object!] angle [number!]][
-    vect 
-        (pair/x * cosine angle) - (pair/y * sine angle)
-        (pair/x * sine angle) + (pair/y * cosine angle)
+rotate: function [pair [pair!] angle [number!]][
+    to pair! reduce [
+        to integer! (pair/x * cosine angle) - (pair/y * sine angle)
+        to integer! (pair/x * sine angle) + (pair/y * cosine angle)
+    ]
 ]
 
-direction: vect 1.0 0.0
+direction: 0x1
 
-pos: vect 0.0 0.0
+pos: 0x0
 
 digits: charset "1234567890"
 
-turn: ["R" (direction: rotate direction 90) | "L" (direction: rotate direction -90)]
+turn: [
+      "R" (direction: rotate direction -90)
+    | "L" (direction: rotate direction 90)
+]
 
 rules: [
     some [
         turn
         copy dist some digits (
-                dist: load dist
-                pos/x: pos/x + (dist * direction/x)
-                pos/y: pos/y + (dist * direction/y)
-                )
+            dist: load dist
+            pos/x: pos/x + (dist * direction/x)
+            pos/y: pos/y + (dist * direction/y)
+        )
         | skip
     ]
 ]
@@ -76,9 +78,40 @@ test3: [
 ]
 
 foreach test reduce [test1 test2 test3 compose [input: (input) output: "???"]][
-    direction: vect 0.0 1.0
-    pos: vect 0.0 0.0
+    direction: 0x1
+    pos: 0x0
     do [parse test/input rules]
-    print [(absolute pos/x) + (absolute pos/y) "should be" test/output]
+    print ["final position: " pos "distance: " (absolute pos/x) + (absolute pos/y) "expected: " test/output]
 ]
 
+part-two-rules: [
+    some [
+        turn
+        copy dist some digits (
+                dist: load dist
+                repeat i dist [
+                    ;print [pos "+" direction]
+                    pos: pos + direction
+                    either select visited pos [print ["reached" pos] break][append visited pos]
+                ]
+            )
+        | skip
+    ]
+]
+
+test4: [
+    input: "R8, R4, R4, R8"
+    output: 4
+]
+
+direction: 0x1
+pos: 0x0
+visited: [0x0]
+
+parse test4/input part-two-rules
+
+direction: 0x1
+pos: 0x0
+visited: [0x0]
+
+parse input part-two-rules
