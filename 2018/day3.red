@@ -47,6 +47,15 @@ Red [
 
         If the Elves all proceed with their own plans, none of them will have enough fabric. How many square inches of fabric are within two or more claims?
     }
+    part2: {
+        --- Part Two ---
+
+        Amidst the chaos, you notice that exactly one claim doesn't overlap by even a single square inch of fabric with any other claim. If you can somehow draw attention to it, maybe the Elves will be able to make Santa's suit after all!
+
+        For example, in the claims above, only claim 3 is intact after all claims are made.
+
+        What is the ID of the only claim that doesn't overlap?
+    }
 ]
 
 
@@ -54,12 +63,57 @@ Red [
 
 lines: read get-input 3
 
+comment lines: {
+#1 @ 1,3: 4x4
+#2 @ 3,1: 4x4
+#3 @ 5,5: 2x2
+}
+
 digit: charset [#"0" - #"9"]
 
 probe claims: parse lines [
     collect [some [
-        "#" some digit
-        " @ " copy x some digit "," copy y some digit keep (as-pair x y)
-        ": " keep pair!
+        ahead "#" collect [
+            "#" copy num some digit keep (num)
+            " @ " copy x some digit "," copy y some digit keep (as-pair load x load y)
+            ": " copy pair [some digit "x" some digit] keep (load pair)
+        ]
+        | skip
     ]]
+]
+
+squares: #()
+
+foreach claim claims [
+    num: claim/1
+    offset: claim/2 - 1x1
+    size: claim/3
+    repeat x size/x [
+        repeat y size/y [
+            square: offset + to-pair reduce [x y]
+            squares/:square: either squares/:square ["X"][num]
+        ]
+    ]
+]
+
+count: 0
+
+foreach value values-of squares [
+    if value = "x" [count: count + 1]
+]
+
+probe count
+
+foreach claim claims [
+    num: claim/1
+    offset: claim/2 - 1x1
+    size: claim/3
+    overlap: false
+    repeat x size/x [
+        repeat y size/y [
+            square: offset + to-pair reduce [x y]
+            if squares/:square = "X" [overlap: yes]
+        ]
+    ]
+    if not overlap [probe num]
 ]
